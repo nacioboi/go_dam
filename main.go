@@ -130,150 +130,153 @@ func format_Number_With_Commas(n int64) string {
 // - Easy to add new tests.
 // - Easy to add new benchmarks.
 
+//func main() {
+// debug.SetGCPercent(-1)
+// defer debug.SetGCPercent(100)
+// defer runtime.GC()
+
+// f, err := os.Create("cpu.prof")
+// if err != nil {
+// 	log.Fatal(err)
+// }
+// defer f.Close()
+
+// n_normal := uint64(1024 * 1024 * 32)
+// n_memory := uint64(1024 * 1024)
+
+// // Create maps...
+// bm := make(map[uint64]uint64)
+// dam_save := dam_map.New[uint64, uint64](
+// 	n_normal,
+// 	dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__SAVE_MEMORY),
+// )
+// dam_normal := dam_map.New[uint64, uint64](
+// 	n_normal,
+// 	dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__NORMAL),
+// )
+// dam_fast := dam_map.New[uint64, uint64](
+// 	n_normal,
+// 	dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__FAST),
+// )
+
+// bm_m_f := func() map[uint64]uint64 {
+// 	return make(map[uint64]uint64)
+// }
+
+// dam_save_m_f := func() *dam_map.DAM[uint64, uint64] {
+// 	return dam_map.New[uint64, uint64](
+// 		n_memory,
+// 		dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__SAVE_MEMORY),
+// 	)
+// }
+// dam_normal_m_f := func() *dam_map.DAM[uint64, uint64] {
+// 	return dam_map.New[uint64, uint64](
+// 		n_memory,
+// 		dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__NORMAL),
+// 	)
+// }
+// dam_fast_m_f := func() *dam_map.DAM[uint64, uint64] {
+// 	return dam_map.New[uint64, uint64](
+// 		n_memory,
+// 		dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__FAST),
+// 	)
+// }
+
+// var res tests.Test_Result
+
+// // Benchmark Linear Set...
+// res = tests.Bench_Linear_Builtin_Map_Set(bm, n_normal)
+// fmt.Printf("\nBM       :: LINEAR SET            :: %d\n", res.Elapsed_Time)
+// fmt.Printf("BM       :: MICROSECONDS PER OP   :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// res = tests.Bench_Linear_DAM_Set(dam_save, n_normal)
+// fmt.Printf("DAM SAVE  :: LINEAR SET          :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM SAVE  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// res = tests.Bench_Linear_DAM_Set(dam_normal, n_normal)
+// fmt.Printf("DAM NORMAL  :: LINEAR SET        :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM NORMAL  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// res = tests.Bench_Linear_DAM_Set(dam_fast, n_normal)
+// fmt.Printf("DAM FAST  :: LINEAR SET          :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM FAST  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+
+// // Benchmark Linear Get...
+// res = tests.Bench_Linear_Builtin_Map_Get(bm, n_normal)
+// fmt.Printf("\nBM       :: LINEAR GET            :: %d\n", res.Elapsed_Time)
+// fmt.Printf("BM       :: MICROSECONDS PER OP   :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// bm_checksum := res.Checksum
+// res = tests.Bench_Linear_DAM_Get(dam_save, n_normal)
+// fmt.Printf("DAM SAVE  :: LINEAR GET          :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM SAVE  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// dam_save_checksum := res.Checksum
+// res = tests.Bench_Linear_DAM_Get(dam_normal, n_normal)
+// fmt.Printf("DAM NORMAL  :: LINEAR GET        :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM NORMAL  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// dam_normal_checksum := res.Checksum
+// res = tests.Bench_Linear_DAM_Get(dam_fast, n_normal)
+// fmt.Printf("DAM FAST  :: LINEAR GET          :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM FAST  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// dam_fast_checksum := res.Checksum
+
+// // Benchmark Random get...
+// data := tests.Generate_Random_Keys(n_normal)
+// res = tests.Bench_Random_Builtin_Map_Get(bm, data)
+// fmt.Printf("\nBM       :: RANDOM GET            :: %d\n", res.Elapsed_Time)
+// fmt.Printf("BM       :: MICROSECONDS PER OP   :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// res = tests.Bench_Random_DAM_Get(dam_save, data)
+// fmt.Printf("DAM SAVE  :: RANDOM GET          :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM SAVE  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// res = tests.Bench_Random_DAM_Get(dam_normal, data)
+// fmt.Printf("DAM NORMAL  :: RANDOM GET        :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM NORMAL  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+// pprof.StartCPUProfile(f)
+// res = tests.Bench_Random_DAM_Get(dam_fast, data)
+// pprof.StopCPUProfile()
+// fmt.Printf("DAM FAST  :: RANDOM GET          :: %d\n", res.Elapsed_Time)
+// fmt.Printf("DAM FAST  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
+
+// // Benchmark memory usage...
+// var dam_max_mem uint64
+// var dam_save_mem uint64
+// var dam_normal_mem uint64
+// var dam_fast_mem uint64
+
+// res = tests.Bench_Mem_Usage_Builtin_Map(bm_m_f, n_memory)
+// fmt.Printf("\nBM       :: MEMORY USAGE           :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
+
+// res = tests.Bench_Mem_Usage_DAM(dam_save_m_f, n_memory)
+// dam_max_mem = max(dam_max_mem, res.Memory_Usage)
+// dam_save_mem = res.Memory_Usage
+// fmt.Printf("DAM SAVE  :: MEMORY USAGE         :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
+
+// res = tests.Bench_Mem_Usage_DAM(dam_normal_m_f, n_memory)
+// dam_max_mem = max(dam_max_mem, res.Memory_Usage)
+// dam_normal_mem = res.Memory_Usage
+// fmt.Printf("DAM NORMAL  :: MEMORY USAGE       :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
+
+// res = tests.Bench_Mem_Usage_DAM(dam_fast_m_f, n_memory)
+// dam_max_mem = max(dam_max_mem, res.Memory_Usage)
+// dam_fast_mem = res.Memory_Usage
+// fmt.Printf("DAM FAST  :: MEMORY USAGE         :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
+
+// // Print memory percentage of max memory...
+// fmt.Printf("\nSFDA SAVE :: MEMORY USAGE PERCENTAGE :: %f\n", float64(dam_save_mem)/float64(dam_max_mem))
+// fmt.Printf("DAM NORMAL  :: MEMORY USAGE PERCENTAGE :: %f\n", float64(dam_normal_mem)/float64(dam_max_mem))
+// fmt.Printf("DAM FAST  :: MEMORY USAGE PERCENTAGE :: %f\n", float64(dam_fast_mem)/float64(dam_max_mem))
+
+// // Print checksums...
+// fmt.Printf("\nBM       :: CHECKSUM               :: %d\n", bm_checksum)
+// fmt.Printf("DAM SAVE  :: CHECKSUM             :: %d\n", dam_save_checksum)
+// fmt.Printf("DAM NORMAL  :: CHECKSUM           :: %d\n", dam_normal_checksum)
+// fmt.Printf("DAM FAST  :: CHECKSUM             :: %d\n", dam_fast_checksum)
+
+// // Assert checksums...
+// for _, checksum := range []uint64{dam_save_checksum, dam_normal_checksum, dam_fast_checksum} {
+// 	if checksum != bm_checksum {
+// 		log.Fatalf("Checksums do not match!")
+// 	}
+// }
+// fmt.Printf("\nChecksums match!\n")
+
+//}
+
 func main() {
-	// debug.SetGCPercent(-1)
-	// defer debug.SetGCPercent(100)
-	// defer runtime.GC()
-
-	// f, err := os.Create("cpu.prof")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer f.Close()
-
-	// n_normal := uint64(1024 * 1024 * 32)
-	// n_memory := uint64(1024 * 1024)
-
-	// // Create maps...
-	// bm := make(map[uint64]uint64)
-	// dam_save := dam_map.New[uint64, uint64](
-	// 	n_normal,
-	// 	dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__SAVE_MEMORY),
-	// )
-	// dam_normal := dam_map.New[uint64, uint64](
-	// 	n_normal,
-	// 	dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__NORMAL),
-	// )
-	// dam_fast := dam_map.New[uint64, uint64](
-	// 	n_normal,
-	// 	dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__FAST),
-	// )
-
-	// bm_m_f := func() map[uint64]uint64 {
-	// 	return make(map[uint64]uint64)
-	// }
-
-	// dam_save_m_f := func() *dam_map.DAM[uint64, uint64] {
-	// 	return dam_map.New[uint64, uint64](
-	// 		n_memory,
-	// 		dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__SAVE_MEMORY),
-	// 	)
-	// }
-	// dam_normal_m_f := func() *dam_map.DAM[uint64, uint64] {
-	// 	return dam_map.New[uint64, uint64](
-	// 		n_memory,
-	// 		dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__NORMAL),
-	// 	)
-	// }
-	// dam_fast_m_f := func() *dam_map.DAM[uint64, uint64] {
-	// 	return dam_map.New[uint64, uint64](
-	// 		n_memory,
-	// 		dam_map.With_Performance_Profile[uint64, uint64](dam_map.PERFORMANCE_PROFILE__FAST),
-	// 	)
-	// }
-
-	// var res tests.Test_Result
-
-	// // Benchmark Linear Set...
-	// res = tests.Bench_Linear_Builtin_Map_Set(bm, n_normal)
-	// fmt.Printf("\nBM       :: LINEAR SET            :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("BM       :: MICROSECONDS PER OP   :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// res = tests.Bench_Linear_DAM_Set(dam_save, n_normal)
-	// fmt.Printf("DAM SAVE  :: LINEAR SET          :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM SAVE  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// res = tests.Bench_Linear_DAM_Set(dam_normal, n_normal)
-	// fmt.Printf("DAM NORMAL  :: LINEAR SET        :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM NORMAL  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// res = tests.Bench_Linear_DAM_Set(dam_fast, n_normal)
-	// fmt.Printf("DAM FAST  :: LINEAR SET          :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM FAST  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-
-	// // Benchmark Linear Get...
-	// res = tests.Bench_Linear_Builtin_Map_Get(bm, n_normal)
-	// fmt.Printf("\nBM       :: LINEAR GET            :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("BM       :: MICROSECONDS PER OP   :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// bm_checksum := res.Checksum
-	// res = tests.Bench_Linear_DAM_Get(dam_save, n_normal)
-	// fmt.Printf("DAM SAVE  :: LINEAR GET          :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM SAVE  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// dam_save_checksum := res.Checksum
-	// res = tests.Bench_Linear_DAM_Get(dam_normal, n_normal)
-	// fmt.Printf("DAM NORMAL  :: LINEAR GET        :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM NORMAL  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// dam_normal_checksum := res.Checksum
-	// res = tests.Bench_Linear_DAM_Get(dam_fast, n_normal)
-	// fmt.Printf("DAM FAST  :: LINEAR GET          :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM FAST  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// dam_fast_checksum := res.Checksum
-
-	// // Benchmark Random get...
-	// data := tests.Generate_Random_Keys(n_normal)
-	// res = tests.Bench_Random_Builtin_Map_Get(bm, data)
-	// fmt.Printf("\nBM       :: RANDOM GET            :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("BM       :: MICROSECONDS PER OP   :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// res = tests.Bench_Random_DAM_Get(dam_save, data)
-	// fmt.Printf("DAM SAVE  :: RANDOM GET          :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM SAVE  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// res = tests.Bench_Random_DAM_Get(dam_normal, data)
-	// fmt.Printf("DAM NORMAL  :: RANDOM GET        :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM NORMAL  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-	// pprof.StartCPUProfile(f)
-	// res = tests.Bench_Random_DAM_Get(dam_fast, data)
-	// pprof.StopCPUProfile()
-	// fmt.Printf("DAM FAST  :: RANDOM GET          :: %d\n", res.Elapsed_Time)
-	// fmt.Printf("DAM FAST  :: MICROSECONDS PER OP :: %f\n", float64(res.Elapsed_Time)/float64(n_normal))
-
-	// // Benchmark memory usage...
-	// var dam_max_mem uint64
-	// var dam_save_mem uint64
-	// var dam_normal_mem uint64
-	// var dam_fast_mem uint64
-
-	// res = tests.Bench_Mem_Usage_Builtin_Map(bm_m_f, n_memory)
-	// fmt.Printf("\nBM       :: MEMORY USAGE           :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
-
-	// res = tests.Bench_Mem_Usage_DAM(dam_save_m_f, n_memory)
-	// dam_max_mem = max(dam_max_mem, res.Memory_Usage)
-	// dam_save_mem = res.Memory_Usage
-	// fmt.Printf("DAM SAVE  :: MEMORY USAGE         :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
-
-	// res = tests.Bench_Mem_Usage_DAM(dam_normal_m_f, n_memory)
-	// dam_max_mem = max(dam_max_mem, res.Memory_Usage)
-	// dam_normal_mem = res.Memory_Usage
-	// fmt.Printf("DAM NORMAL  :: MEMORY USAGE       :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
-
-	// res = tests.Bench_Mem_Usage_DAM(dam_fast_m_f, n_memory)
-	// dam_max_mem = max(dam_max_mem, res.Memory_Usage)
-	// dam_fast_mem = res.Memory_Usage
-	// fmt.Printf("DAM FAST  :: MEMORY USAGE         :: %s\n", format_Number_With_Commas(int64(res.Memory_Usage)))
-
-	// // Print memory percentage of max memory...
-	// fmt.Printf("\nSFDA SAVE :: MEMORY USAGE PERCENTAGE :: %f\n", float64(dam_save_mem)/float64(dam_max_mem))
-	// fmt.Printf("DAM NORMAL  :: MEMORY USAGE PERCENTAGE :: %f\n", float64(dam_normal_mem)/float64(dam_max_mem))
-	// fmt.Printf("DAM FAST  :: MEMORY USAGE PERCENTAGE :: %f\n", float64(dam_fast_mem)/float64(dam_max_mem))
-
-	// // Print checksums...
-	// fmt.Printf("\nBM       :: CHECKSUM               :: %d\n", bm_checksum)
-	// fmt.Printf("DAM SAVE  :: CHECKSUM             :: %d\n", dam_save_checksum)
-	// fmt.Printf("DAM NORMAL  :: CHECKSUM           :: %d\n", dam_normal_checksum)
-	// fmt.Printf("DAM FAST  :: CHECKSUM             :: %d\n", dam_fast_checksum)
-
-	// // Assert checksums...
-	// for _, checksum := range []uint64{dam_save_checksum, dam_normal_checksum, dam_fast_checksum} {
-	// 	if checksum != bm_checksum {
-	// 		log.Fatalf("Checksums do not match!")
-	// 	}
-	// }
-	// fmt.Printf("\nChecksums match!\n")
-
 }

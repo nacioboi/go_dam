@@ -1,4 +1,4 @@
-module github.com/nacioboi/go_dam/dam
+module github.com/nacioboi/go_dam
 
 go 1.23.0
 

@@ -33,9 +33,9 @@ func New[KT I_Positive_Integer, VT any](
 	expected_num_inputs KT,
 	options ...T_Option[KT, VT],
 ) *DAM[KT, VT] {
-	expected_num_inputs = next_power_of_two(expected_num_inputs)
+	expected_num_inputs = max(64, next_power_of_two(expected_num_inputs))
 
-	profile := PERFORMANCE_PROFILE__SAVE_MEMORY
+	profile := PERFORMANCE_PROFILE__NORMAL
 	for _, opt := range options {
 		if opt.t == OPTION_TYPE__WITH_PERFORMANCE_PROFILE {
 			profile = opt.other.(T_Performance_Profile)
@@ -45,7 +45,7 @@ func New[KT I_Positive_Integer, VT any](
 	var num_buckets KT
 	switch profile {
 	case PERFORMANCE_PROFILE__FAST:
-		num_buckets = expected_num_inputs / 2
+		num_buckets = expected_num_inputs
 	case PERFORMANCE_PROFILE__NORMAL:
 		num_buckets = expected_num_inputs / 4
 	case PERFORMANCE_PROFILE__SAVE_MEMORY:
