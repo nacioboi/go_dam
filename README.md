@@ -18,76 +18,47 @@ This project aims to provide a hash map that is stupid fast when compared to the
 ## See for yourself:
 
 ```text
-❯ go run .\main.go
-Built-in Map Microseconds  ::: LINEAR SET ::: 241689
-Built-in Map Microseconds  ::: LINEAR GET ::: 92691
-Checksum: 2199022206976
-DAM Microseconds      ::: LINEAR SET ::: 92462
-DAM Microseconds      ::: LINEAR GET ::: 72458
-Checksum: 2199022206976
-
-Built-in Map Microseconds  ::: RANDOM GET PER OP ::: 0.044669
-DAM Microseconds      ::: RANDOM GET PER OP ::: 0.088233
-
-Builtin Map Microseconds   ::: DELETE ::: 138280
-DAM Microseconds      ::: DELETE ::: 179705
-
-Memory Used (Built-in):  41,064 bytes
-Memory Used (DAM):      85,976 bytes
+goos: windows
+goarch: amd64
+pkg: github.com/nacioboi/go_dam/dam/tests
+cpu: AMD Ryzen 5 7600 6-Core Processor
+Benchmark__Linear_FAST_DAM__Set__-12            410969740                2.901 ns/op           0 B/op          0 allocs/op
+Benchmark__Linear_FAST_DAM__Get__-12            793708011                1.515 ns/op           0 B/op          0 allocs/op
+Benchmark__Random_FAST_DAM__Set__-12            72179148                18.79 ns/op            0 B/op          0 allocs/op
+Benchmark__Random_FAST_DAM__Get__-12            100000000               11.64 ns/op            0 B/op          0 allocs/op
+Benchmark__Linear_NORMAL_DAM__Set__-12          377219346                3.180 ns/op           0 B/op          0 allocs/op
+Benchmark__Linear_NORMAL_DAM__Get__-12          638553973                1.903 ns/op           0 B/op          0 allocs/op
+Benchmark__Random_NORMAL_DAM__Set__-12          61178605                31.09 ns/op            0 B/op          0 allocs/op
+Benchmark__Random_NORMAL_DAM__Get__-12          46552225                27.42 ns/op            0 B/op          0 allocs/op
+Benchmark__Linear_SAVE_MEMORY_DAM__Set__-12     171420146                7.243 ns/op           0 B/op          0 allocs/op
+Benchmark__Linear_SAVE_MEMORY_DAM__Get__-12     254328781                4.440 ns/op           0 B/op          0 allocs/op
+Benchmark__Random_SAVE_MEMORY_DAM__Set__-12     44422232                37.70 ns/op            0 B/op          0 allocs/op
+Benchmark__Random_SAVE_MEMORY_DAM__Get__-12     37469788                36.44 ns/op            0 B/op          0 allocs/op
+Benchmark__Linear_Builtin_Map__Set__-12         13001238               106.4 ns/op            57 B/op          0 allocs/op
+Benchmark__Linear_Builtin_Map__Get__-12         35397393                41.38 ns/op            0 B/op          0 allocs/op
+Benchmark__Random_Builtin_Map__Set__-12         13061778               116.3 ns/op            57 B/op          0 allocs/op
+Benchmark__Random_Builtin_Map__Get__-12         32381409                46.74 ns/op            0 B/op          0 allocs/op
+PASS
+ok      github.com/nacioboi/go_dam/dam/tests    81.222s
 ```
 
-```text
-❯ 92691/72458
-1.27923762731513
+Getting the speed improvement for random get:
+
+```powershell
+❯  46.74/11.64
+4.01546391752577
 ```
 
-That is 1.2 times faster than the built-in `map` for getting values.
+And for linear get:
 
-And it only consumes roughly 2x more memory than the built-in `map`.
-A worth-wile trade-off for the speed.
+```powershell
+❯ 41.38/1.515
+27.3135313531353
+````
 
-> NOTE: The memory usage is calculated using a smaller size of map compared to the performance tests.
+### Your welcome golang maintainers, i will be submitting a PR to replace the built-in `map` with this package.
 
-But you might have noticed the random get per operation tells a different story...
-This is because we're using the slowest performance profile.
-
-**When we change to the fastest performance profile, we get:**
-
-```text
-❯ go run .\main.go
-Built-in Map Microseconds  ::: LINEAR SET ::: 243346
-Built-in Map Microseconds  ::: LINEAR GET ::: 92668
-Checksum: 2199022206976
-DAM Microseconds      ::: LINEAR SET ::: 15104
-DAM Microseconds      ::: LINEAR GET ::: 3632
-Checksum: 2199022206976
-
-Built-in Map Microseconds  ::: RANDOM GET PER OP ::: 0.044980
-DAM Microseconds      ::: RANDOM GET PER OP ::: 0.019487
-
-Builtin Map Microseconds   ::: DELETE ::: 139271
-DAM Microseconds      ::: DELETE ::: 112769
-
-Memory Used (Built-in):  41,064 bytes
-Memory Used (DAM):      85,976 bytes
-```
-
-```text
-❯ 92668/3632
-25.5143171806167
-```
-
-That is 25 times faster than the built-in `map` for getting values in our linear test.
-
-Let us divide the time taken in random get from the built-in `map` and our DAM respectively:
-
-```text
-❯ 0.044980/0.019487
-2.30820547031354
-```
-
-This gives us the number to beat.
-The performance of our DAM can only get better from here!
+jk
 
 ## Quick Start
 
