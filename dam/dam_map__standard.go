@@ -5,88 +5,58 @@
 
 package dam
 
-type I_Positive_Integer interface {
-	uint8 | uint16 | uint32 | uint64
-}
-
-type t_bucket_entry[KT I_Positive_Integer, VT any] struct {
-	key   KT
-	value VT
-}
-
-type bucket[KT I_Positive_Integer, VT any] struct {
-	entries []t_bucket_entry[KT, VT]
-}
-
 // Super-Fast Direct-Access Map.
-type DAM[KT I_Positive_Integer, VT any] struct {
-	buckets        []bucket[KT, VT]
+type DAM_STD[KT I_Positive_Integer, VT any] struct {
+	buckets        []t_bucket_std[KT, VT]
 	num_buckets_m1 KT
 
 	users_chosen_hash_func func(KT) uint64
 	using_users_hash_func  bool
-
-	profile T_Performance_Profile
 }
 
-func New[KT I_Positive_Integer, VT any](
+// Creates a new DAM (Direct-Access Map) that tries to balance speed and memory usage, slight preference for speed.
+//
+// Since this is a DAM, we need to know the expected number of inputs in advance.
+// This leaves us with the following options:
+//
+// - `New_Fast_DAM`: Super-fast DAM, sacrifices memory usage for speed.
+//
+// - `New_STD_DAM`: Slightly slower DAM, gives up some speed for memory usage.
+//
+// - `New_MOH_DAM`: (Medium-OverHead DAM), gives up even more speed for memory usage.
+//
+// - `New_LOH_DAM`: (Low-OverHead DAM), sacrifices speed for memory savings.
+//
+func New_STD_DAM[KT I_Positive_Integer, VT any](
 	expected_num_inputs KT,
-	options ...T_Option[KT, VT],
-) *DAM[KT, VT] {
-	expected_num_inputs = max(64, next_power_of_two(expected_num_inputs))
-
-	profile := PERFORMANCE_PROFILE__NORMAL
-	for _, opt := range options {
-		if opt.t == OPTION_TYPE__WITH_PERFORMANCE_PROFILE {
-			profile = opt.other.(T_Performance_Profile)
-		}
-	}
-
-	var num_buckets KT
-	switch profile {
-	case PERFORMANCE_PROFILE__FAST:
-		num_buckets = expected_num_inputs
-	case PERFORMANCE_PROFILE__NORMAL:
-		num_buckets = expected_num_inputs / 4
-	case PERFORMANCE_PROFILE__SAVE_MEMORY:
-		num_buckets = expected_num_inputs / 8
-	default:
-		panic("Invalid performance profile.")
-	}
+) *DAM_STD[KT, VT] {
+	expected_num_inputs = max(128, next_power_of_two(expected_num_inputs))
+	num_buckets := max(2, expected_num_inputs/4)
 
 	if num_buckets%2 != 0 {
 		panic("numBuckets should be a multiple of 2.")
 	}
 
 	// Allocate buckets...
-	num_buckets_runtime := any(num_buckets).(uint64)
-	buckets := make([]bucket[KT, VT], num_buckets_runtime)
-	estimated_num_entries_per_bucket := expected_num_inputs / num_buckets
+	num_buckets_runtime := uint64(num_buckets)
+	buckets := make([]t_bucket_std[KT, VT], num_buckets_runtime)
 	for i := uint64(0); i < num_buckets_runtime; i++ {
-		b := bucket[KT, VT]{
-			entries: make([]t_bucket_entry[KT, VT], 0, estimated_num_entries_per_bucket),
+		b := t_bucket_std[KT, VT]{
+			entries: make([]t_bucket_entry[KT, VT], 0),
 		}
 		buckets[i] = b
 	}
 
 	// Instantiate...
-	inst := DAM[KT, VT]{
+	inst := DAM_STD[KT, VT]{
 		buckets:        buckets,
 		num_buckets_m1: num_buckets - 1,
-		profile:        profile,
-	}
-
-	// Apply options...
-	for _, opt := range options {
-		if opt.t != OPTION_TYPE__WITH_PERFORMANCE_PROFILE {
-			opt.f(&inst)
-		}
 	}
 
 	return &inst
 }
 
-func (m *DAM[KT, VT]) Enquire_Number_Of_Buckets() KT {
+func (m *DAM_STD[KT, VT]) Enquire_Number_Of_Buckets() KT {
 	return m.num_buckets_m1 + 1
 }
 
@@ -96,7 +66,7 @@ func (m *DAM[KT, VT]) Enquire_Number_Of_Buckets() KT {
 // - WARNING: This function is NOT thread-safe.
 //
 //go:inline
-func (m *DAM[KT, VT]) Set(key KT, value VT) {
+func (m *DAM_STD[KT, VT]) Set(key KT, value VT) {
 	if key == 0 {
 		panic("Key cannot be 0.")
 	}
@@ -168,7 +138,7 @@ func (m *DAM[KT, VT]) Set(key KT, value VT) {
 // - NOTE: This function will not check if the key is 0.
 //
 //go:inline
-func (m *DAM[KT, VT]) Get(key KT) (VT, bool) {
+func (m *DAM_STD[KT, VT]) Get(key KT) (VT, bool) {
 	// NOTE: Keeping value type here improves performance since we do not modify the value.
 	buck := m.buckets[key&m.num_buckets_m1]
 
@@ -191,7 +161,7 @@ func (m *DAM[KT, VT]) Get(key KT) (VT, bool) {
 // - NOTE: This function will not check if the key is 0.
 //
 //go:inline
-func (m *DAM[KT, VT]) Delete(key KT) bool {
+func (m *DAM_STD[KT, VT]) Delete(key KT) bool {
 	// index := key & m.num_buckets_m1
 	// buck := &m.buckets[index]
 
