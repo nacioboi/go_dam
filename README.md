@@ -70,55 +70,7 @@ go get github.com/nacioboi/go_dam/dam
 
 - Code sample:
 
-```go
-package main
-
-import (
-	"fmt"
-	"time"
-
-	"github.com/nacioboi/go_dam/dam"
-)
-
-var _t uint64
-var _start time.Time
-
-func bench_linear_DAM_set(dam *dam.DAM[uint64, uint64], n uint64, do_print bool) {
-	_start = time.Now()
-	for i := uint64(0); i < n; i++ {
-		dam.Set(i+1, i)
-	}
-	since := time.Since(_start)
-	if do_print {
-		fmt.Println("DAM Microseconds      ::: LINEAR SET :::", since.Microseconds())
-	}
-}
-
-func bench_linear_DAM_get(dam *dam.DAM[uint64, uint64], n uint64, do_print bool) {
-	_t = 0
-	_start = time.Now()
-	for i := uint64(0); i < n; i++ {
-		res := dam.Get(i + 1)
-		_t += res.Value
-	}
-	since := time.Since(_start)
-	if do_print {
-		fmt.Println("DAM Microseconds      ::: LINEAR GET :::", since.Microseconds())
-		fmt.Println("Checksum:", _t)
-	}
-}
-
-func main() {
-	const n = 1024 * 1024
-
-	// Create a new DAM...
-	m := dam_map.New_DAM[uint64, uint64](n)
-
-	// Benchmark...
-	bench_linear_DAM_set(m, n, true)
-	bench_linear_DAM_get(m, n, true)
-}
-```
+TODO -- Add code sample
 
 ## How to contribute
 
