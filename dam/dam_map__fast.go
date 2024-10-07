@@ -6,13 +6,14 @@
 package dam
 
 type t_bucket_fast[KT I_Positive_Integer, VT any] struct {
-	first t_bucket_entry[KT, VT]
+	first_key KT
 }
 
 // Super-Fast Direct-Access Map.
 type DAM_FAST[KT I_Positive_Integer, VT any] struct {
 	buckets        []t_bucket_fast[KT, VT]
-	overflows      *DAM_MOH[KT, VT]
+	values         []VT
+	overflows      map[KT]VT
 	num_buckets_m1 KT
 
 	users_chosen_hash_func func(KT) uint64
@@ -48,9 +49,9 @@ func New_Fast_DAM[KT I_Positive_Integer, VT any](
 
 	// Instantiate...
 	inst := DAM_FAST[KT, VT]{
-		buckets: buckets,
-		// In theory, 2 extra overflows:
-		overflows:      _inner_New_MOH_DAM[KT, VT](num_buckets*4, false),
+		buckets:        buckets,
+		overflows:      make(map[KT]VT),
+		values:         make([]VT, num_buckets_runtime),
 		num_buckets_m1: num_buckets - 1,
 	}
 
@@ -75,65 +76,20 @@ func (m *DAM_FAST[KT, VT]) Set(key KT, value VT) {
 	index := key & m.num_buckets_m1
 	buck := &m.buckets[index]
 
-	if buck.first.key == key {
-		buck.first.value = value
+	if buck.first_key == key {
+		m.values[index] = value
 		return
 	}
 
-	if buck.first.key == 0 {
-		buck.first.key = key
-		buck.first.value = value
+	if buck.first_key == 0 {
+		buck.first_key = key
+		m.values[index] = value
 		return
 	}
 
-	second_hash := (index & (m.num_buckets_m1 >> 1)) + 1
-	m.overflows.Set(second_hash, value)
+	//second_hash := (index & (m.num_buckets_m1 >> 1)) + 1
+	m.overflows[key] = value
 }
-
-// The runtime overhead was too much:
-// //go:noescape
-// //go:nosplit
-// //go:nobounds
-// func simd_find_idx(ptr *uint64, pad uint64, len uint64, key uint64) uint8
-//
-// - WARNING: This function is NOT thread-safe.
-//
-// - NOTE: Remember that keys cannot be 0.
-//
-// - NOTE: This function will not check if the key is 0.
-//
-//go:inline
-// func (m *DAM[KT, VT]) Find(key KT) uint8 {
-// 	// NOTE: Keeping value type here improves performance since we do not modify the value.
-// 	buck := m.buckets[key&m.num_buckets_m1]
-//
-// 	starting_point := uint8(m.extras[key/8]>>int(key%8)) & 1
-//
-// 	var my_var uint64
-// 	i := uint8(0)
-// 	for ; i < PREALLOC_SPACE_PER_BUCKET/2; i++ {
-// 		my_var = uint64(buck.keys[starting_point+i*2])
-// 		m.candidates[i] = my_var
-// 	}
-//
-//	if len(candidates)%4 != 0 {
-//		padding := 4 - len(candidates)%4
-//		for i := 0; i < padding; i++ {
-//			candidates = append(candidates, 0)
-//		}
-//	}
-//
-// 	//runtime.LockOSThread()
-// 	v := simd_find_idx(&m.candidates[0], 0, PREALLOC_SPACE_PER_BUCKET, uint64(key))
-// 	//runtime.UnlockOSThread()
-// 	x := starting_point + (v * 2) - 2
-//
-// 	//if buck.keys[x] == key {
-// 	return x + 1
-// 	//}
-//
-// 	panic("Not implemented.")
-// }
 
 // Returns the value and a boolean indicating whether the value was found.
 //
@@ -149,12 +105,12 @@ func (m *DAM_FAST[KT, VT]) Get(key KT) (VT, bool) {
 	index := key & m.num_buckets_m1
 	buck := m.buckets[index]
 
-	if buck.first.key == key {
-		return buck.first.value, true
+	if buck.first_key == key {
+		return m.values[index], true
 	}
 
-	second_hash := (index & (m.num_buckets_m1 >> 1)) + 1
-	res, found := m.overflows.Get(second_hash)
+	//second_hash := (index & (m.num_buckets_m1 >> 1)) + 1
+	res, found := m.overflows[key]
 	if found {
 		return res, true
 	}
