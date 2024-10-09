@@ -5,15 +5,16 @@
 
 package dam
 
-type t_bucket_moh[KT I_Positive_Integer, VT any] struct {
-	keys   [64]uint64
-	values [64]VT
-}
+const _MOH_DAM__NUM_ITEMS_PER_BUCKET = 64
 
 // Super-Fast Direct-Access Map.
 type DAM_MOH[KT I_Positive_Integer, VT any] struct {
-	buckets        []t_bucket_moh[KT, VT]
-	overflows      map[KT]VT
+	keys            [][_MOH_DAM__NUM_ITEMS_PER_BUCKET]uint64
+	values          [][_MOH_DAM__NUM_ITEMS_PER_BUCKET]VT
+	overflow_keys   [][]uint64
+	overflow_values [][]VT
+	len             uint64
+
 	num_buckets_m1 KT
 
 	overflows_enabled bool
@@ -42,8 +43,8 @@ func _inner_New_MOH_DAM[KT I_Positive_Integer, VT any](
 	expected_num_inputs KT,
 	enable_overflows bool,
 ) *DAM_MOH[KT, VT] {
-	expected_num_inputs = max(64, next_power_of_two(expected_num_inputs))
-	num_buckets := max(2, expected_num_inputs/64)
+	expected_num_inputs = max(128, next_power_of_two(expected_num_inputs))
+	num_buckets := max(2, expected_num_inputs/_MOH_DAM__NUM_ITEMS_PER_BUCKET)
 
 	if num_buckets%2 != 0 {
 		panic("numBuckets should be a multiple of 2.")
@@ -51,24 +52,25 @@ func _inner_New_MOH_DAM[KT I_Positive_Integer, VT any](
 
 	// Allocate buckets...
 	num_buckets_runtime := uint64(num_buckets)
-	buckets := make([]t_bucket_moh[KT, VT], num_buckets_runtime)
 
 	// Instantiate...
 	inst := DAM_MOH[KT, VT]{
-		buckets:           buckets,
+		keys:              make([][_MOH_DAM__NUM_ITEMS_PER_BUCKET]uint64, num_buckets_runtime),
+		values:            make([][_MOH_DAM__NUM_ITEMS_PER_BUCKET]VT, num_buckets_runtime),
 		num_buckets_m1:    num_buckets - 1,
 		overflows_enabled: enable_overflows,
 	}
 
 	if enable_overflows {
-		inst.overflows = make(map[KT]VT)
+		inst.overflow_keys = make([][]uint64, num_buckets_runtime)
+		inst.overflow_values = make([][]VT, num_buckets_runtime)
 	}
 
 	return &inst
 }
 
 func (m *DAM_MOH[KT, VT]) Enquire_Number_Of_Buckets() KT {
-	return m.num_buckets_m1 + 1
+	return KT(m.num_buckets_m1 + 1)
 }
 
 // Set a key-value pair in the map.
@@ -83,83 +85,35 @@ func (m *DAM_MOH[KT, VT]) Set(key KT, value VT) {
 	}
 
 	index := key & m.num_buckets_m1
-	buck := &m.buckets[index]
 
-	for i := 0; i < 64; i++ {
-		if buck.keys[i] == uint64(key) {
-			buck.values[i] = value
+	for i := 0; i < _MOH_DAM__NUM_ITEMS_PER_BUCKET; i++ {
+		if m.keys[index][i] == uint64(key) {
+			m.values[index][i] = value
 			return
 		}
 	}
 
-	for i := 0; i < 64; i++ {
-		if buck.keys[i] == 0 {
-			buck.keys[i] = uint64(key)
-			buck.values[i] = value
+	for i := 0; i < _MOH_DAM__NUM_ITEMS_PER_BUCKET; i++ {
+		if m.keys[index][i] == 0 {
+			m.keys[index][i] = uint64(key)
+			m.values[index][i] = value
 			return
 		}
 	}
 
 	if m.overflows_enabled {
-		m.overflows[key] = value
+		for i := 0; i < len(m.overflow_keys[index]); i++ {
+			if m.overflow_keys[index][i] == uint64(key) {
+				m.overflow_values[index][i] = value
+			}
+		}
+		m.overflow_keys[index] = append(m.overflow_keys[index], uint64(key))
+		m.overflow_values[index] = append(m.overflow_values[index], value)
 		return
 	}
 
 	panic("no space left in bucket")
 }
-
-// The runtime overhead was too much:
-// //go:noescape
-// //go:nosplit
-// //go:nobounds
-// func simd_find_idx(ptr *uint64, pad uint64, len uint64, key uint64) uint8
-//
-// - WARNING: This function is NOT thread-safe.
-//
-// - NOTE: Remember that keys cannot be 0.
-//
-// - NOTE: This function will not check if the key is 0.
-//
-//go:inline
-// func (m *DAM[KT, VT]) Find(key KT) uint8 {
-// 	// NOTE: Keeping value type here improves performance since we do not modify the value.
-// 	buck := m.buckets[key&m.num_buckets_m1]
-//
-// 	starting_point := uint8(m.extras[key/8]>>int(key%8)) & 1
-//
-// 	var my_var uint64
-// 	i := uint8(0)
-// 	for ; i < PREALLOC_SPACE_PER_BUCKET/2; i++ {
-// 		my_var = uint64(buck.keys[starting_point+i*2])
-// 		m.candidates[i] = my_var
-// 	}
-//
-//	if len(candidates)%4 != 0 {
-//		padding := 4 - len(candidates)%4
-//		for i := 0; i < padding; i++ {
-//			candidates = append(candidates, 0)
-//		}
-//	}
-//
-// 	//runtime.LockOSThread()
-// 	v := simd_find_idx(&m.candidates[0], 0, PREALLOC_SPACE_PER_BUCKET, uint64(key))
-// 	//runtime.UnlockOSThread()
-// 	x := starting_point + (v * 2) - 2
-//
-// 	//if buck.keys[x] == key {
-// 	return x + 1
-// 	//}
-//
-// 	panic("Not implemented.")
-// }
-
-// Warning: This function must be called with keys satisfying the following conditions:
-// 1. len(keys) % 4 == 0
-// 2. no duplicate keys.
-//
-//go:noescape
-//go:nosplit
-func simd_find_idx(ptr *uint64, length uint64, key uint64) uint8
 
 // Returns the value and a boolean indicating whether the value was found.
 //
@@ -172,21 +126,21 @@ func simd_find_idx(ptr *uint64, length uint64, key uint64) uint8
 //go:inline
 func (m *DAM_MOH[KT, VT]) Get(key KT) (VT, bool) {
 	// NOTE: Keeping value type here improves performance since we do not modify the value.
-	buck := m.buckets[key&m.num_buckets_m1]
+	index := key & m.num_buckets_m1
 
-	// Took me an entire day coding assembly for a 5ns improvement. :facepalm:
-	// NOTE: From what i can tell, the below optimization is only faster sometimes, other times it is slower.
-	v := simd_find_idx(&buck.keys[0], 64, uint64(key))
-	if v != 0 {
-		return buck.values[v-1], true
+	v, ok := avx512_find_idx_64i(uint64(key), &m.keys[index][0])
+	if ok {
+		return m.values[index][v], true
 	}
 
-	if m.overflows_enabled {
-		res, found := m.overflows[key]
-		if found {
-			return res, true
-		}
-	}
+	// if m.overflows_enabled {
+	// 	// Fetch from overflow...
+	// 	for i := 0; i < len(m.overflow_keys[index]); i++ {
+	// 		if m.overflow_keys[index][i] == uint64(key) {
+	// 			return m.overflow_values[index][i], true
+	// 		}
+	// 	}
+	// }
 
 	var zero VT
 	return zero, false

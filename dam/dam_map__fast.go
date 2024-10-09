@@ -5,19 +5,14 @@
 
 package dam
 
-type t_bucket_fast[KT I_Positive_Integer, VT any] struct {
-	first_key KT
-}
-
 // Super-Fast Direct-Access Map.
 type DAM_FAST[KT I_Positive_Integer, VT any] struct {
-	buckets        []t_bucket_fast[KT, VT]
-	values         []VT
-	overflows      map[KT]VT
-	num_buckets_m1 KT
+	first_keys      []KT
+	first_values    []VT
+	overflow_keys   [][]KT
+	overflow_values [][]VT
 
-	users_chosen_hash_func func(KT) uint64
-	using_users_hash_func  bool
+	num_buckets_m1 KT
 }
 
 // Creates a new DAM (Direct-Access Map) that sacrifices memory usage for speed.
@@ -45,14 +40,14 @@ func New_Fast_DAM[KT I_Positive_Integer, VT any](
 
 	// Allocate buckets...
 	num_buckets_runtime := uint64(num_buckets)
-	buckets := make([]t_bucket_fast[KT, VT], num_buckets_runtime)
 
 	// Instantiate...
 	inst := DAM_FAST[KT, VT]{
-		buckets:        buckets,
-		overflows:      make(map[KT]VT),
-		values:         make([]VT, num_buckets_runtime),
-		num_buckets_m1: num_buckets - 1,
+		first_keys:      make([]KT, num_buckets_runtime),
+		overflow_keys:   make([][]KT, num_buckets_runtime),
+		overflow_values: make([][]VT, num_buckets_runtime),
+		first_values:    make([]VT, num_buckets_runtime),
+		num_buckets_m1:  num_buckets - 1,
 	}
 
 	return &inst
@@ -74,21 +69,28 @@ func (m *DAM_FAST[KT, VT]) Set(key KT, value VT) {
 	}
 
 	index := key & m.num_buckets_m1
-	buck := &m.buckets[index]
 
-	if buck.first_key == key {
-		m.values[index] = value
+	if m.first_keys[index] == key {
+		m.first_values[index] = value
 		return
 	}
 
-	if buck.first_key == 0 {
-		buck.first_key = key
-		m.values[index] = value
+	if m.first_keys[index] == 0 {
+		m.first_keys[index] = key
+		m.first_values[index] = value
 		return
 	}
 
-	//second_hash := (index & (m.num_buckets_m1 >> 1)) + 1
-	m.overflows[key] = value
+	// Overflow...
+	for i := 0; i < len(m.overflow_keys[index]); i++ {
+		if m.overflow_keys[index][i] == key {
+			m.overflow_values[index][i] = value
+			return
+		}
+	}
+
+	m.overflow_keys[index] = append(m.overflow_keys[index], key)
+	m.overflow_values[index] = append(m.overflow_values[index], value)
 }
 
 // Returns the value and a boolean indicating whether the value was found.
@@ -103,50 +105,24 @@ func (m *DAM_FAST[KT, VT]) Set(key KT, value VT) {
 func (m *DAM_FAST[KT, VT]) Get(key KT) (VT, bool) {
 	// NOTE: Keeping value type here improves performance since we do not modify the value.
 	index := key & m.num_buckets_m1
-	buck := m.buckets[index]
 
-	if buck.first_key == key {
-		return m.values[index], true
+	if m.first_keys[index] == key {
+		return m.first_values[index], true
 	}
 
-	//second_hash := (index & (m.num_buckets_m1 >> 1)) + 1
-	res, found := m.overflows[key]
-	if found {
-		return res, true
+	// Fetch from overflow...
+	for i := 0; i < len(m.overflow_keys[index]); i++ {
+		if m.overflow_keys[index][i] == key {
+			return m.overflow_values[index][i], true
+		}
 	}
 
 	var zero VT
 	return zero, false
 }
 
-// Delete an entry from the map and return a boolean indicating whether the entry was found.
-//
-// - WARNING: This function is NOT thread-safe.
-//
-// - NOTE: Remember that keys cannot be 0.
-//
-// - NOTE: This function will not check if the key is 0.
-//
 //go:inline
 func (m *DAM_FAST[KT, VT]) Delete(key KT) bool {
-	// index := key & m.num_buckets_m1
-	// buck := &m.buckets[index]
 
-	// loc := -1
-
-	// for i := 0; i < len(buck.entries); i++ {
-	// 	if buck.entries[i].key == uint64(key) {
-	// 		loc = i
-	// 		break
-	// 	}
-	// }
-
-	// // Rearrange the entire slice...
-	// if loc == -1 {
-	// 	return false
-	// }
-
-	// buck.entries = append(buck.entries[:loc], buck.entries[loc+1:]...)
-	// return true
 	panic("Not implemented.")
 }
