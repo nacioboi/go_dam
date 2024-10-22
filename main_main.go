@@ -18,7 +18,7 @@ import (
 func main() {
 	runtime.GC()
 
-	const n = 1024 //<< 20 // 1M
+	const n = 40960 //<< 20 // 1M
 
 	var start_mem_info runtime.MemStats
 	var end_mem_info runtime.MemStats
@@ -77,13 +77,18 @@ func main() {
 	runtime.ReadMemStats(&start_mem_info)
 	ca = dam.New_Compressed_Array()
 	for i := uint64(0); i < n; i++ {
-		x := r.Uint64() % 65535 * 4
+		x := r.Uint64() % (1 << 16)
+		if x == 0 {
+			x++
+		}
 		ca.Append(x)
 		ca_rv = append(ca_rv, x)
 	}
 	runtime.ReadMemStats(&end_mem_info)
 	println("CA memory usage - RANDOM: ", end_mem_info.Alloc-start_mem_info.Alloc)
 
+	// fmt.Printf("ca_rv: %v\n", ca_rv)
+	// fmt.Printf("ca.data: %v\n", ca.D)
 	// Confirm that the compressed array is correct
 	for i := uint64(0); i < n; i++ {
 		if ca.Get(i) != ca_rv[i] {
