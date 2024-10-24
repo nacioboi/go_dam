@@ -369,9 +369,9 @@ func CC_Encode(text string, codes Huffman__Compile_Time_Codes) string {
 	var encoded strings.Builder
 	for _, char := range text {
 		for i := 0; i < int(codes.Len); i++ {
-			if *(*rune)(unsafe.Add(codes.X, i)) == char {
+			if *(*rune)(unsafe.Add(codes.X, i<<2)) == char {
 				encoded.WriteString(
-					*(*string)(unsafe.Add(codes.Y, i)),
+					*(*string)(unsafe.Add(codes.Y, i<<4)),
 				)
 				break
 			}
@@ -387,14 +387,17 @@ type Huffman__Compile_Time_Codes struct {
 	Len uint32
 }
 
+var TEFB_CC_X []rune = []rune{' ', 'n', 'l', '1', 'E', '’', 'I', 10, ',', 'h', 'o', '5', '!', 'Z', 'Y', 'x', 'z', 'P', 'A', '.', 'c', 'G', 'L', 'W', 'q', '—', '-', 'M', '4', 'v', 'w', 't', 'a', 'y', 'f', 'j', 'F', 'Q', 'V', 'U', 'K', 'N', '”', 'O', 'D', 'S', 'p', 'u', 'd', 'J', ';', 'k', '2', 'T', ']', 'm', 'r', 'i', 's', '[', '9', '0', '(', ')', 'B', 'C', '8', '?', '7', 'R', '‘', ':', '6', '“', '3', 'H', 'g', 'b', 'e'}
+var TEFB_CC_Y []string = []string{"00", "0100", "01010", "01011000", "010110010", "010110011", "01011010", "01011011", "010111", "0110", "0111", "1000000000", "100000000100", "100000000101", "10000000011", "10000000100", "10000000101", "1000000011", "10000001", "1000001", "100001", "100010000", "100010001", "1000100100", "100010010100", "100010010101", "10001001011", "1000100110", "1000100111", "1000101", "100011", "1001", "1010", "101100", "101101", "10111000000", "101110000010", "101110000011000", "101110000011001", "10111000001101", "1011100000111", "1011100001", "101110001", "1011100100", "1011100101", "101110011", "1011101", "101111", "11000", "110010000", "110010001", "11001001", "110010100", "110010101", "11001011", "110011", "11010", "11011", "11100", "11101000", "11101001000", "11101001001", "1110100101", "1110100110", "1110100111", "11101010000", "11101010001", "11101010010", "11101010011", "1110101010", "111010101100", "111010101101", "11101010111", "111010110", "1110101110", "1110101111", "1110110", "1110111", "1111"}
+
 func main() {
 	var start_t time.Time
 
-	var build_frequency_table_t time.Duration
+	// var build_frequency_table_t time.Duration
 	// var build_tree_t time.Duration
 	// var build_code_table_t time.Duration
 
-	const D = 1024
+	const D = 1024 * 1024 * 8
 
 	// Open file for cpu profiling
 	f, err := os.Create("cpu.prof")
@@ -404,11 +407,11 @@ func main() {
 	defer f.Close()
 	pprof.StartCPUProfile(f)
 
-	start_t = time.Now()
-	for i := 0; i < D; i++ {
-		Huffman__Build_Frequency_Table(c_THE_ENTIRE_FREE_BIBLE)
-	}
-	build_frequency_table_t = time.Since(start_t)
+	// start_t = time.Now()
+	// for i := 0; i < D; i++ {
+	// 	Huffman__Build_Frequency_Table(c_THE_ENTIRE_FREE_BIBLE)
+	// }
+	// build_frequency_table_t = time.Since(start_t)
 
 	// _frequencies := Huffman__Build_Frequency_Table(c_THE_ENTIRE_FREE_BIBLE)
 	// start_t = time.Now()
@@ -431,22 +434,45 @@ func main() {
 	// Build Tree: 2018
 	//Build Code Table: 3033
 
-	fmt.Printf("Build Frequency Table /op: %v\n", build_frequency_table_t.Microseconds()/D)
+	//fmt.Printf("Build Frequency Table /op: %v\n", build_frequency_table_t.Microseconds()/D)
 	// fmt.Printf("Build Tree: %v\n", build_tree_t.Microseconds())
 	// fmt.Printf("Build Code Table: %v\n", build_code_table_t.Microseconds())
 
-	// // Construct Huffman parameters based on all printable ASCII characters...
-	// frequencies := Huffman__Build_Frequency_Table(c_THE_ENTIRE_FREE_BIBLE)
-	// root := Huffman__Build_Tree(frequencies)
-	// codes := Huffman__Build_Code_Table(root, "")
+	// Construct Huffman parameters based on all printable ASCII characters...
+	frequencies := Huffman__Build_Frequency_Table(c_THE_ENTIRE_FREE_BIBLE)
+	root := Huffman__Build_Tree(frequencies)
+	_codes := Huffman__Build_Code_Table(root, "")
 
-	// // Print Huffman Codes...
-	// fmt.Println("Huffman Codes:")
-	// for i := 0; i < len(codes.X); i++ {
-	// 	fmt.Printf("%c: %s\n", codes.X[i], codes.Y[i])
-	// }
+	codes := Huffman__Compile_Time_Codes{
+		X:   unsafe.Pointer(&TEFB_CC_X[0]),
+		Y:   unsafe.Pointer(&TEFB_CC_Y[0]),
+		Len: uint32(len(TEFB_CC_X)),
+	}
 
-	// // Encode the text...
-	// encoded := Encode("Hello, world!", codes)
-	// fmt.Printf("\nEncoded: %s\n", encoded)
+	// Print Huffman Codes...
+	start_t = time.Now()
+	for j := 0; j < D; j++ {
+		for _, char := range _codes.X {
+			rc_index_of(_codes.X, char)
+			// if !ok {
+			// 	panic("Character not found in code table")
+			// }
+			//fmt.Printf("%c: %s\n", char, _codes.Y[x])
+		}
+	}
+	fmt.Printf("Print Codes: %v\n", time.Since(start_t).Nanoseconds()/D)
+
+	start_t = time.Now()
+	for j := 0; j < D; j++ {
+		for i := 0; i < int(codes.Len); i++ {
+			_ = *(*rune)(unsafe.Add(codes.X, i<<2))
+			_ = *(*string)(unsafe.Add(codes.Y, i<<4))
+			//fmt.Printf("%s: %s\n",x,y)
+		}
+	}
+	fmt.Printf("Print Codes: %v\n", time.Since(start_t).Nanoseconds()/D)
+
+	// Encode the text...
+	encoded := CC_Encode("Hello, world!", codes)
+	fmt.Printf("\nEncoded: %s\n", encoded)
 }
