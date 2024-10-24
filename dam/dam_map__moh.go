@@ -33,7 +33,7 @@ type DAM_MOH[KT I_Positive_Integer, VT any] struct {
 //
 // - `New_LOH_DAM`: (Low-OverHead DAM), sacrifices speed for memory savings.
 //
-func New_MOH_DAM[KT I_Positive_Integer, VT any](
+func (_ DAM_MOH[KT, VT]) New(
 	expected_num_inputs KT,
 ) *DAM_MOH[KT, VT] {
 	return _inner_New_MOH_DAM[KT, VT](expected_num_inputs, true)

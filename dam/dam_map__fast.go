@@ -28,7 +28,7 @@ type DAM_FAST[KT I_Positive_Integer, VT any] struct {
 //
 // - `New_LOH_DAM`: (Low-OverHead DAM), sacrifices speed for memory savings.
 //
-func New_Fast_DAM[KT I_Positive_Integer, VT any](
+func (_ DAM_FAST[KT, VT]) New(
 	expected_num_inputs KT,
 ) *DAM_FAST[KT, VT] {
 	expected_num_inputs = max(128, next_power_of_two(expected_num_inputs))

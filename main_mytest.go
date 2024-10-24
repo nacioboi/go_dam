@@ -38,7 +38,7 @@ func main_mytest() {
 	// }
 
 	n := uint64(1024 * 1024) // * 512)
-	dam := dam.New_MOH_DAM[uint64, uint64](1024)
+	dam := dam.DAM_MOH[uint64, uint64]{}.New(n)
 	dam.Set(n+2, n+1)
 
 	var x uint64

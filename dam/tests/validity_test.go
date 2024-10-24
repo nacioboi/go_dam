@@ -35,7 +35,7 @@ import (
 
 func Test_Consistency_MOH(t *testing.T) {
 	const num_inputs = 1025 // 1 more than a power of 2.
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(num_inputs))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(num_inputs))
 
 	for i := uint64(0); i < uint64(num_inputs); i++ {
 		dam_map.Set(i+1, i)
@@ -54,7 +54,7 @@ func Test_Consistency_MOH(t *testing.T) {
 
 func Test_Consistency_STD(t *testing.T) {
 	const num_inputs = 1025 // 1 more than a power of 2.
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(num_inputs))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(num_inputs))
 
 	for i := uint64(0); i < uint64(num_inputs); i++ {
 		dam_map.Set(i+1, i)
@@ -73,7 +73,7 @@ func Test_Consistency_STD(t *testing.T) {
 
 func Test_Consistency_Fast(t *testing.T) {
 	const num_inputs = 1025 // 1 more than a power of 2.
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(num_inputs))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(num_inputs))
 
 	for i := uint64(0); i < uint64(num_inputs); i++ {
 		dam_map.Set(i+1, i)
@@ -114,7 +114,7 @@ func Test_Consistency_Fast(t *testing.T) {
 
 func Test_Collision_MOH(t *testing.T) {
 	const num_inputs = 1024
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(num_inputs))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(num_inputs))
 
 	const v = 32
 	for i := uint64(0); i < uint64(num_inputs*v); i++ {
@@ -134,7 +134,7 @@ func Test_Collision_MOH(t *testing.T) {
 
 func Test_Collision_STD(t *testing.T) {
 	const num_inputs = 1024
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(num_inputs))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(num_inputs))
 
 	const v = 32
 	for i := uint64(0); i < uint64(num_inputs*v); i++ {
@@ -154,7 +154,7 @@ func Test_Collision_STD(t *testing.T) {
 
 func Test_Collision_Fast(t *testing.T) {
 	const num_inputs = 128
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(num_inputs))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(num_inputs))
 
 	const v = 2
 	for i := uint64(0); i < uint64(num_inputs*v); i++ {

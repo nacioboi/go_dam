@@ -21,7 +21,7 @@ func Benchmark__FAST_DAM__Memory_Use_W_Overflows__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_Fast_DAM[uint64, uint64](uint64(4096))
+	x := dam.DAM_FAST[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 		x.Set(i+1+4096, i+4096)
@@ -40,7 +40,7 @@ func Benchmark__STD_DAM__Memory_Use_W_Overflows__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_STD_DAM[uint64, uint64](uint64(4096))
+	x := dam.DAM_STD[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 		x.Set(i+1+4096, i+4096)
@@ -59,7 +59,7 @@ func Benchmark__MOH_DAM__Memory_Use_W_Overflows__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_MOH_DAM[uint64, uint64](uint64(4096))
+	x := dam.DAM_MOH[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 		x.Set(i+1+4096, i+4096)
@@ -78,7 +78,7 @@ func Benchmark__FAST_DAM__Memory_Usage__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_Fast_DAM[uint64, uint64](uint64(4096))
+	x := dam.DAM_FAST[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 	}
@@ -96,7 +96,7 @@ func Benchmark__STD_DAM__Memory_Usage__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_STD_DAM[uint64, uint64](uint64(4096))
+	x := dam.DAM_STD[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 	}
@@ -114,7 +114,7 @@ func Benchmark__MOH_DAM__Memory_Usage__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_MOH_DAM[uint64, uint64](uint64(4096))
+	x := dam.DAM_MOH[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 	}
@@ -141,7 +141,7 @@ func Benchmark__LOH_DAM__Memory_Usage__(b *testing.B) {
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	x := dam.New_LOH_DAM[uint64, uint64](uint64(4096)) //, encode_value_f, decode_value_f)
+	x := dam.DAM_LOH[uint64, uint64]{}.New(uint64(4096))
 	for i := uint64(0); i < 4096; i++ {
 		x.Set(i+1, i)
 	}
@@ -172,7 +172,7 @@ func Benchmark__Builtin_Map__Memory_Usage__(b *testing.B) {
 func Benchmark__Linear_FAST_DAM__Set__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(b.N))
 
 	b.ResetTimer()
 	for i := uint64(0); i < uint64(b.N); i++ {
@@ -185,7 +185,7 @@ func Benchmark__Linear_FAST_DAM__Set__(b *testing.B) {
 func Benchmark__Linear_FAST_DAM__Get__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := uint64(0); i < uint64(b.N); i++ {
 		dam_map.Set(i+1, i)
@@ -208,7 +208,7 @@ func Benchmark__Linear_FAST_DAM__Get__(b *testing.B) {
 func Benchmark__Random_FAST_DAM__Set__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(b.N))
 
 	keys := generate_random_keys(b.N)
 
@@ -223,7 +223,7 @@ func Benchmark__Random_FAST_DAM__Set__(b *testing.B) {
 func Benchmark__Random_FAST_DAM__Get__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := 0; i < b.N; i++ {
 		dam_map.Set(uint64(i+1), uint64(i))
@@ -248,7 +248,7 @@ func Benchmark__Random_FAST_DAM__Get__(b *testing.B) {
 func Benchmark__Linear_STD_DAM__Set__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(b.N))
 	b.ResetTimer()
 	for i := uint64(0); i < uint64(b.N); i++ {
 		dam_map.Set(i+1, i)
@@ -260,7 +260,7 @@ func Benchmark__Linear_STD_DAM__Set__(b *testing.B) {
 func Benchmark__Linear_STD_DAM__Get__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := uint64(0); i < uint64(b.N); i++ {
 		dam_map.Set(i+1, i)
@@ -283,7 +283,7 @@ func Benchmark__Linear_STD_DAM__Get__(b *testing.B) {
 func Benchmark__Random_STD_DAM__Set__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(b.N))
 
 	keys := generate_random_keys(b.N)
 
@@ -298,7 +298,7 @@ func Benchmark__Random_STD_DAM__Set__(b *testing.B) {
 func Benchmark__Random_STD_DAM__Get__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := 0; i < b.N; i++ {
 		dam_map.Set(uint64(i+1), uint64(i))
@@ -323,7 +323,7 @@ func Benchmark__Random_STD_DAM__Get__(b *testing.B) {
 func Benchmark__Linear_MOH_DAM__Set__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(b.N))
 
 	b.ResetTimer()
 	for i := uint64(0); i < uint64(b.N); i++ {
@@ -336,7 +336,7 @@ func Benchmark__Linear_MOH_DAM__Set__(b *testing.B) {
 func Benchmark__Linear_MOH_DAM__Get__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := uint64(0); i < uint64(b.N); i++ {
 		dam_map.Set(i+1, i)
@@ -359,7 +359,7 @@ func Benchmark__Linear_MOH_DAM__Get__(b *testing.B) {
 func Benchmark__Random_MOH_DAM__Set__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(b.N))
 
 	keys := generate_random_keys(b.N)
 
@@ -374,7 +374,7 @@ func Benchmark__Random_MOH_DAM__Set__(b *testing.B) {
 func Benchmark__Random_MOH_DAM__Get__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := 0; i < b.N; i++ {
 		dam_map.Set(uint64(i+1), uint64(i))
@@ -579,7 +579,7 @@ func Benchmark__Random_Builtin_Map__Get__(b *testing.B) {
 func Benchmark__FAST_DAM__Get__W_Overflows__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_Fast_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_FAST[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := 0; i < b.N; i++ {
 		dam_map.Set(uint64(i+1), uint64(i))
@@ -603,7 +603,7 @@ func Benchmark__FAST_DAM__Get__W_Overflows__(b *testing.B) {
 func Benchmark__STD_DAM__Get__W_Overflows__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_STD_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_STD[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := 0; i < b.N; i++ {
 		dam_map.Set(uint64(i+1), uint64(i))
@@ -627,7 +627,7 @@ func Benchmark__STD_DAM__Get__W_Overflows__(b *testing.B) {
 func Benchmark__MOH_DAM__Get__W_Overflows__(b *testing.B) {
 	defer runtime.GC()
 
-	dam_map := dam.New_MOH_DAM[uint64, uint64](uint64(b.N))
+	dam_map := dam.DAM_MOH[uint64, uint64]{}.New(uint64(b.N))
 
 	for i := 0; i < b.N; i++ {
 		dam_map.Set(uint64(i+1), uint64(i))

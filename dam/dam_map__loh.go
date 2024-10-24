@@ -9,8 +9,8 @@ const _LOH_DAM__NUM_ITEMS_PER_BUCKET = 128
 
 // Super-Fast Direct-Access Map.
 type DAM_LOH[KT I_Large_Positive_Integer, VT any] struct {
-	keys   *compressed_array
-	values *compressed_array
+	keys   *Compressed_Array
+	values *Compressed_Array
 }
 
 // Creates a new DAM (Direct-Access Map) that tries to balance speed and memory usage, slight preference for memory savings.
@@ -26,7 +26,7 @@ type DAM_LOH[KT I_Large_Positive_Integer, VT any] struct {
 //
 // - `New_LOH_DAM`: (Low-OverHead DAM), sacrifices speed for memory savings.
 //
-func New_LOH_DAM[KT I_Large_Positive_Integer, VT any](
+func (_ DAM_LOH[KT, VT]) New(
 	expected_num_inputs KT,
 ) *DAM_LOH[KT, VT] {
 	expected_num_inputs = max(128, next_power_of_two(expected_num_inputs))

@@ -30,7 +30,7 @@ type DAM_STD[KT I_Positive_Integer, VT any] struct {
 //
 // - `New_LOH_DAM`: (Low-OverHead DAM), sacrifices speed for memory savings.
 //
-func New_STD_DAM[KT I_Positive_Integer, VT any](
+func (_ DAM_STD[KT, VT]) New(
 	expected_num_inputs KT,
 ) *DAM_STD[KT, VT] {
 	expected_num_inputs = max(128, next_power_of_two(expected_num_inputs))
